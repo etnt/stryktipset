@@ -1,229 +1,168 @@
 # Stryktipset reduced system
 
-`reduce_system.py` turns a Stryktipset system into a smaller set of single
-rows ("enkelrader"). It writes the rows in the Svenska Spel "Externa
-systemspel" file format (see
-[README-external-stryktipset-format.md](README-external-stryktipset-format.md)).
+This tool makes a smaller Stryktipset bet from a large system. A system
+is a set of rows that covers many possible results. A full system can
+cost too much. This tool selects fewer rows and still gives you a
+guarantee for the rows it keeps.
 
-## What the guarantee means
+## What it does
 
-The input has 13 entries, one for each match. Each entry is `1`, `X`, `2` or a
-combination such as `1X`, `X2` or `1X2`. The full system is every row that you
-can make from the entries. The full system can be very expensive.
+Stryktipset is a football pool from Svenska Spel. Each coupon has 13
+matches. For each match you pick `1` (home win), `X` (draw), `2` (away
+win), or a combination such as `1X`, `X2` or `1X2`. A combination covers
+more than one result for that match.
 
-The reduced system has fewer rows. It has a guarantee `G`: if the real result
-is one of the rows of the full system, then at least one row in the reduced
-system has `G` or more correct matches. If the real result is outside the full
-system, there is no guarantee.
+The **full system** is every row that you can make from your 13 entries.
+A single row is one result for each match, for example `1,X,2,1,...`.
 
-## Set up
+A **guarantee** `G` is the minimum number of correct matches. If the real
+result is in the full system, at least one row in your reduced system
+has `G` or more correct matches. For example, a guarantee of 12 means
+that one row has at least 12 of the 13 matches right. If the real result
+is not in the full system, the tool makes no promise.
 
-Run these commands from the repository root:
+The tool writes the rows to a text file. The file uses the format for
+Svenska Spel external system bets. See
+[README-external-stryktipset-format.md](README-external-stryktipset-format.md).
+
+## How it works
+
+1. You enter the 13 entries and the guarantee you want.
+2. The tool lists every outcome in the full system.
+3. The tool selects rows that cover the most outcomes. It has two methods:
+   - `greedy` picks the best row at each step. It is fast.
+   - `anneal` starts from the greedy result. It then tries to remove rows
+     and find a smaller set. It is slower, but it often finds fewer rows.
+4. The tool writes the rows to a file. It also prints a report with the
+   number of rows, the cost, and how many outcomes the guarantee covers.
+
+## Ways to run it
+
+You have three options.
+
+1. **Web page (easiest).** Open `reduce.html` in a modern browser. The
+   page runs on your computer. Nothing is uploaded. The page is tested
+   when you open it over HTTP. Opening the file straight from disk may
+   also work, but this is not tested.
+2. **Command line, Rust version (recommended).** This is the `reduce-rs`
+   program. It is faster on large systems and has no Python dependencies.
+   See [Command line (Rust)](#command-line-rust) below.
+3. **Command line, Python version (legacy).** This is the older
+   `reduce_system.py` script. It gives the same kind of output, but it is
+   slower on large systems.
+   Use it only if you cannot build the Rust version. See
+   [Legacy Python script](#legacy-python-script) below.
+
+## Command line (Rust)
+
+You need a Rust toolchain (`cargo`). Install it from https://rustup.rs.
+
+Build the program once:
 
 ```sh
-python3 -m venv tools/.venv
-tools/.venv/bin/pip install -r tools/requirements.txt
+cd reduce-rs
+cargo build --release
 ```
 
-## Use
+Run it. Use quotes around the system:
 
 ```sh
-tools/.venv/bin/python tools/stryktipset/reduce_system.py \
-    "1,x,x2,2,1,1x2,1,x,1,2,1x,1,1x" -g 12 -k 5
+reduce-rs/target/release/reduce-rs "1,x,x2,2,1,1x2,1,x,1,2,1x,1,1x" -g 12 -k 5
 ```
 
-The script writes the rows to a file. By default the file name shows the
-input criteria: product, system, guarantee (`g`), row option (`k` for
-`--rows`, `n` for `--max-rows`), algorithm and seed (`s`), if given. For
-example:
+The program writes a file in the current folder. The file name shows the
+input, for example:
 
 ```text
 stryktipset_1-X-X2-2-1-1X2-1-X-1-2-1X-1-1X_g12_k5_greedy.txt
 ```
 
-The script then prints a summary on stdout:
+Upper and lower case letters both work. The most useful options are:
 
-```text
-Stryktipset reduced system
-  System:        1,X,X2,2,1,1X2,1,X,1,2,1X,1,1X
-  Full system:   24 rows
-  Guarantee:     12 correct, exactly 5 rows (--rows)
-  Algorithm:     greedy
-  Rows needed:   6 for the full guarantee (best found; lower bound 4)
-  Rows written:  5, cost 5 SEK
-  Guarantee 12 holds for 23/24 outcomes (95.83 %)
-  Best result over all outcomes of the full system:
-    13 correct:        5 outcomes ( 20.83 %)
-    12 correct:       18 outcomes ( 75.00 %)
-    11 correct:        1 outcomes (  4.17 %)
-  Time:          0.00 s
-  Output file:   stryktipset_1-X-X2-2-1-1X2-1-X-1-2-1X-1-1X_g12_k5_greedy.txt
-```
+| Option | Meaning |
+| --- | --- |
+| `-g`, `--guarantee` | Minimum correct matches. The default is 12. Use 13 for the full system. |
+| `-k`, `--rows` | Write exactly this number of rows. |
+| `-n`, `--max-rows` | Write at most this number of rows. |
+| `-a`, `--algorithm` | `greedy` (default) or `anneal`. |
+| `--seed` | Use the same random seed to get the same output again. |
+| `-o`, `--output` | Set the file name, or the folder for the automatic name. |
+| `--product` | `Stryktipset` (default) or `Europatipset`. |
+| `--crlf` | Write Windows line endings. |
+| `-v`, `--verbose` | Show the search progress. |
+| `-q`, `--quiet` | Do not print the report. |
 
-Warnings and errors go to stderr. With `-v`, the search progress also goes
-to stderr.
+Run `reduce-rs --help` for the full list.
 
-## Options
+### Limits
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `system` | | 13 comma-separated entries. Upper or lower case. |
-| `-g`, `--guarantee` | 12 | Guaranteed correct matches. 13 gives the full system. |
-| `-n`, `--max-rows` | none | Upper limit on rows. If the guarantee needs more rows, the script writes the best partial system and reports the real coverage. |
-| `-k`, `--rows` | none | Exact number of rows. See "Fixed number of rows" below. Cannot be used with `--max-rows`. |
-| `-a`, `--algorithm` | `greedy` | `greedy` or `anneal`. See below. |
-| `-r`, `--restarts` | 10 | Greedy runs with random tie-breaks. The smallest result is kept. |
-| `-i`, `--iterations` | 200000 | Anneal: iterations for each attempt. |
-| `--time-limit` | none | Anneal: stop the search after this many seconds. |
-| `--sample` | 12 | Anneal: candidate moves scored per iteration. |
-| `--t-start`, `--t-end` | 0.6, 0.1 | Anneal: start and end temperature. |
-| `--seed` | random | Random seed. Use it to get the same output again. Negative values need `=`: `--seed=-123456` (a space makes clap read `-123456` as a flag). |
-| `-o`, `--output` | automatic name | Output file. If this is an existing directory, the file gets the automatic name in that directory. |
-| `--product` | `Stryktipset` | First line of the file. `Stryktipset` or `Europatipset`. |
-| `--crlf` | off | Write Windows line endings. |
-| `--row-price` | 1.0 | Price for each row in SEK. Used for the cost report. |
-| `--no-verify` | off | Do not compute the "best result" table in the summary. |
-| `--max-memory-cells` | 250000000 | Limit for the neighbour table. |
-| `-v`, `--verbose` | off | Write the search progress to stderr. |
-| `-q`, `--quiet` | off | Do not print the summary on stdout. This also skips the hit distribution. |
+The tool keeps a table of near rows in memory. A very large system with
+a low guarantee can need too much memory. The tool then stops with an
+error. For example, 13 full matches with guarantee 11 can hit this limit.
 
-The script warns if the file has more than 10 000 rows or the cost is more
-than 20 000 SEK. These are the Svenska Spel limits.
-
-## Algorithms
-
-The problem is a covering problem: every row of the full system must differ
-in at most `13 - G` matches from a selected row.
-
-- `greedy`: Select the row that covers the most uncovered outcomes. Do this
-  again until all outcomes are covered. Then remove rows that other rows
-  make unnecessary. This is fast.
-- `anneal`: Start with the greedy result. Remove one row, then use simulated
-  annealing to cover all outcomes again. Do this again until it fails or the
-  time limit ends. This is slower, but it often gives fewer rows.
-
-With `--max-rows`, both algorithms try to cover as many outcomes as possible
-with the given number of rows. `anneal` usually covers more.
-
-### Fixed number of rows
-
-`-k N` (or `--rows N`) always writes exactly `N` rows.
-
-- If the guarantee needs more than `N` rows, the script works as with
-  `--max-rows N`. The guarantee then holds only for part of the outcomes. The
-  report shows how large that part is.
-- If the guarantee needs fewer than `N` rows, the script adds rows. The added
-  rows aim at one more correct match (`G + 1`). They cover as many outcomes as
-  possible at that level. If all outcomes are covered at `G + 1`, the script
-  goes on with `G + 2`, and so on.
-- `N` cannot be more than the number of rows in the full system.
-
-Example: a 500 SEK system with guarantee 11:
+### Tests
 
 ```sh
-tools/.venv/bin/python tools/stryktipset/reduce_system.py \
-    "1x2,1x2,1x2,1x2,1x2,1x2,1x,1x,1x,x2,x2,1,1" -g 11 -k 500
-```
-
-The report also shows a lower bound: the full system size divided by the
-number of outcomes that one row covers. No system can have fewer rows.
-
-## Rust version
-
-`reduce-rs` is a faster port of `reduce_system.py`. It gives the same output
-format and the same guarantee. It is much faster on large systems. It has no
-Python dependencies.
-
-Build it once. You need a Rust toolchain (`cargo`):
-
-```sh
-cd tools/stryktipset/reduce-rs
-cargo build --release
-```
-
-Run it from the repository root:
-
-```sh
-tools/stryktipset/reduce-rs/target/release/reduce-rs \
-    "1,x,x2,2,1,1x2,1,x,1,2,1x,1,1x" -g 12 -k 5
-```
-
-The options match the Python script (`-g`, `-k`, `-n`, `-a`, `-r`, `-i`,
-`--time-limit`, `--seed`, `-o`, `--crlf`, `--product`). Run `--help` for the full
-list.
-
-The Python and Rust programs use different random number generators. With the
-same `--seed`, greedy output can match exactly, but anneal output will not.
-Compare results by row count and guarantee, not by exact text.
-
-Tests:
-
-```sh
-cd tools/stryktipset/reduce-rs
+cd reduce-rs
 cargo test
 ```
 
-## Limits
+## Legacy Python script
 
-The script keeps a table of all near rows in memory. For very large systems
-with a low guarantee the table is too large, for example 13 full matches
-with guarantee 11. The script then stops with an error.
-
-## Tests
+`reduce_system.py` is the first version of this tool. Use the Rust
+version for new work. The Python script needs Python 3 and the `numpy`
+package:
 
 ```sh
-tools/.venv/bin/python -m pytest tools/stryktipset/tests
+pip install numpy
+python3 reduce_system.py "1,x,x2,2,1,1x2,1,x,1,2,1x,1,1x" -g 12 -k 5
 ```
 
-## Web version
+The options are almost the same as in the Rust version. Run
+`python3 reduce_system.py --help` for the list.
 
-`reduce.html` is a self-contained web page with the same reduction engine,
-compiled from Rust to WebAssembly and embedded directly in the file. Open it
-in any modern browser over HTTP (the tested path) — opening it straight from
-disk (`file://`) should work too, but that is untested. Nothing is uploaded;
-everything runs locally.
+Run the Python tests:
 
-- Enter your system (`1,X,X2,...`), pick a guarantee and the number of rows,
-  and press **Reduce system**.
-- The page shows a live size estimate, the summary report and a "best result"
-  distribution chart, and lets you download the system as a `.txt` file in
-  the same Svenska Spel format as the CLI.
-- For the same seed and settings it produces the same rows as `reduce-rs`
-  (verified by `reduce-rs/tests/parity.mjs`).
-- The browser computes the "best result" distribution with a smaller
-  operation budget (2×10⁸) than the CLI (3×10⁹). On very large systems the
-  chart is skipped; the rows and the downloaded file are unaffected.
+```sh
+python3 -m pytest tests
+```
 
-`./build.sh` writes the ready-to-use page to `tools/stryktipset/reduce.html`
-— you only need the toolchain below if you want to rebuild it after changing
-the Rust code.
+## For developers
 
-### Rebuilding the web page
+### Rebuild the web page
 
-One-time toolchain setup:
+The file `reduce.html` is built from the Rust code. You only need this
+when you change the Rust code.
+
+One-time setup:
 
 ```sh
 rustup target add wasm32-unknown-unknown
 cargo install wasm-bindgen-cli --version 0.2.130
 ```
 
-Then, from `tools/stryktipset/reduce-rs`:
+Then build the page:
 
 ```sh
+cd reduce-rs
 ./build.sh
 ```
 
-The script checks the toolchain (and fails loudly if the `wasm-bindgen` CLI
-version does not match the one in `Cargo.lock`), builds the wasm module,
-generates bindings and inlines everything into `tools/stryktipset/reduce.html`
-(~400 KB, single file). `wasm-opt` (binaryen) is optional — when installed it
-only shrinks the embedded module, never the systems the page writes.
+The script checks the tool versions. It fails if the `wasm-bindgen` CLI
+does not match the version in `Cargo.lock`. The output is written to
+`reduce.html`, a single file of about 400 KB. `wasm-opt` (from binaryen)
+is optional. It makes the embedded module smaller.
 
-### Verifying
+### Check the results
 
 ```sh
-cd tools/stryktipset/reduce-rs
-cargo test              # unit tests + CLI golden tests (byte-identical output)
-./tests/golden.sh check # run the golden matrix against any binary
-node tests/parity.mjs   # wasm output vs CLI output, byte for byte (after ./build.sh)
+cd reduce-rs
+cargo test                # unit tests and CLI golden tests
+./tests/golden.sh check   # golden output matrix for any binary
+node tests/parity.mjs     # web page output compared with CLI output (run after ./build.sh)
 ```
+
+The Rust and Python versions use different random number generators.
+With the same seed, greedy output can match exactly, but anneal output
+does not. Compare the results by row count and guarantee, not by exact
+text.
