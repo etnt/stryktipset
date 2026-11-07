@@ -1,5 +1,7 @@
 # Stryktipset reduced system
 
+Try it in your browser: [https://etnt.github.io/stryktipset](https://etnt.github.io/stryktipset)
+
 This tool makes a smaller Stryktipset bet from a large system. A system
 is a set of rows that covers many possible results. A full system can
 cost too much. This tool selects fewer rows and still gives you a
