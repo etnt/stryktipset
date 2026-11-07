@@ -396,7 +396,7 @@ function applyTheme(t) {
 }
 applyTheme((() => {
   try { const s = localStorage.getItem("reduce-theme"); if (s) return s; } catch (e) {}
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "dark";
 })());
 themeBtn.onclick = () =>
   applyTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
