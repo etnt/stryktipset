@@ -46,6 +46,7 @@
   .wrap { max-width: 1060px; margin: 0 auto; padding: 24px 16px 60px; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
   h1 { font-size: 24px; margin: 0; letter-spacing: -.02em; }
+  .version { font-size: 12px; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 8px; vertical-align: middle; }
   .sub { color: var(--muted); margin: 4px 0 0; font-size: 14px; }
   .theme-btn {
     background: var(--panel); border: 1px solid var(--border); color: var(--text);
@@ -152,7 +153,7 @@
 <div class="wrap">
   <header>
     <div>
-      <h1>⚽ Stryktipset System Reducer</h1>
+      <h1>⚽ Stryktipset System Reducer <span class="version">dev</span></h1>
       <p class="sub">Reduce a full system to guaranteed single rows — same engine as the Rust CLI, running entirely in your browser.</p>
     </div>
     <button class="theme-btn" id="themeBtn" title="Toggle dark / light mode">🌗</button>

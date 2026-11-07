@@ -7,7 +7,9 @@ string literal and the wasm embedded as base64.
 """
 
 import base64
+import html
 import json
+import os
 import pathlib
 import sys
 
@@ -22,12 +24,16 @@ if "</script" in glue.lower():
     sys.exit("error: glue JS contains '</script'; escaping logic needed")
 
 template = (root / "template.html").read_text(encoding="utf-8")
-if "__GLUE_JSON__" not in template or "__WASM_B64__" not in template:
+if "__GLUE_JSON__" not in template or "__WASM_B64__" not in template or "__VERSION__" not in template:
     sys.exit("error: template.html is missing placeholders")
 
-html = template.replace("__GLUE_JSON__", json.dumps(glue))
-html = html.replace("__WASM_B64__", wasm_b64)
+# The version comes from APP_VERSION (the git tag in CI). Local builds show "dev".
+version = os.environ.get("APP_VERSION", "").strip() or "dev"
+
+page = template.replace("__GLUE_JSON__", json.dumps(glue))
+page = page.replace("__WASM_B64__", wasm_b64)
+page = page.replace("__VERSION__", html.escape(version))
 
 out = root.parent / "reduce.html"
-out.write_text(html, encoding="utf-8")
+out.write_text(page, encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1024:.0f} KB)")
