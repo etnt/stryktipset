@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Rust build output
+target/
+**/*.rs.bk
+
+# Editors and OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local diffwalk/other tooling state
+.diffwalk/

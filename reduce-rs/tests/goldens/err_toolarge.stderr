@@ -1,0 +1,1 @@
+error: neighbour table too large (1594323 x 1586131 cells). Use a smaller system, a higher --guarantee, or raise --max-memory-cells.

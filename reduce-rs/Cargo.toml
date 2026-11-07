@@ -1,0 +1,44 @@
+[package]
+name = "reduce-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Fast Rust port of tools/stryktipset/reduce_system.py (reduced Stryktipset systems)"
+
+[lib]
+name = "reduce_rs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "reduce-rs"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[features]
+default = ["cli", "parallel"]
+# The command-line front end (clap, random seed fallback, file output).
+cli = ["dep:clap"]
+# Multi-threaded neighbour-table build, greedy restarts and hit distribution.
+# The serial build must produce byte-identical output (tests/golden.sh).
+parallel = ["dep:rayon"]
+# Exposes the engine to wasm-bindgen; used by the web/ crate.
+web = ["dep:serde_json"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"], optional = true }
+rand = "0.9"
+rand_pcg = "0.9"
+rayon = { version = "1", optional = true }
+serde_json = { version = "1", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3"
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+
+[profile.release]
+lto = true
+
+[workspace]
+members = ["web"]

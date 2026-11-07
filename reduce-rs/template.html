@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stryktipset System Reducer</title>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --panel: #ffffff;
+    --panel2: #eef1f7;
+    --text: #1c2333;
+    --muted: #6b7385;
+    --accent: #2f6fed;
+    --accent2: #1d4fc4;
+    --good: #1e9e5a;
+    --warn: #c77700;
+    --bad: #cf3b3b;
+    --border: #dde2ec;
+    --shadow: 0 2px 12px rgba(20, 30, 60, .07);
+    --chip-bg: #e3eaf9;
+  }
+  html[data-theme="dark"] {
+    --bg: #12161f;
+    --panel: #1b2230;
+    --panel2: #232c3d;
+    --text: #e7ebf4;
+    --muted: #97a0b5;
+    --accent: #5b8cff;
+    --accent2: #7ba2ff;
+    --good: #35c477;
+    --warn: #e9a23b;
+    --bad: #ef6a6a;
+    --border: #2c3750;
+    --shadow: 0 2px 14px rgba(0, 0, 0, .35);
+    --chip-bg: #2b3a5c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: background .25s, color .25s;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 24px 16px 60px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -.02em; }
+  .sub { color: var(--muted); margin: 4px 0 0; font-size: 14px; }
+  .theme-btn {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 15px;
+    box-shadow: var(--shadow);
+  }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 18px; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px; box-shadow: var(--shadow); margin-bottom: 18px;
+  }
+  .card h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 14px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 12px 0 5px; }
+  input[type=text], input[type=number], input[type=password], select, textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px;
+    background: var(--panel2); color: var(--text); font-size: 14px; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; resize: vertical; min-height: 64px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .radio-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .radio-row label {
+    position: relative;
+    margin: 0; flex: 1; text-align: center; padding: 8px 10px; border: 1px solid var(--border);
+    border-radius: 9px; cursor: pointer; background: var(--panel2); font-weight: 500; color: var(--text); font-size: 13px;
+  }
+  /* Visually hidden, but still focusable: keyboard users can Tab to the
+     radios and arrow between them; the label shows the focus ring. */
+  .radio-row input {
+    position: absolute; width: 1px; height: 1px; margin: 0; padding: 0;
+    border: 0; clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .radio-row label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .radio-row label.on { border-color: var(--accent); background: var(--chip-bg); font-weight: 700; }
+  .seg { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+  .seg button {
+    flex: 1; padding: 9px; border: 0; background: var(--panel2); color: var(--muted);
+    cursor: pointer; font-size: 14px; font-weight: 600;
+  }
+  .seg button.on { background: var(--accent); color: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 26px; }
+  .chip {
+    background: var(--chip-bg); color: var(--text); border-radius: 20px;
+    padding: 2px 11px; font-size: 12.5px; font-weight: 600;
+  }
+  .hint { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .est { font-size: 13.5px; color: var(--muted); background: var(--panel2); border-radius: 9px; padding: 9px 12px; margin-top: 12px; }
+  .est b { color: var(--text); }
+  .est .toobig { color: var(--bad); font-weight: 700; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .btn {
+    display: inline-block; border: 0; border-radius: 10px; padding: 11px 20px;
+    font-size: 15px; font-weight: 700; cursor: pointer; color: #fff; background: var(--accent);
+    box-shadow: var(--shadow); transition: background .15s;
+  }
+  .btn:hover { background: var(--accent2); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+  .btn.small { padding: 7px 14px; font-size: 13px; }
+  .btnrow { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .status { margin-top: 14px; font-size: 14px; min-height: 22px; display: flex; align-items: center; gap: 10px; }
+  .spinner {
+    width: 16px; height: 16px; border: 2.5px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .8s linear infinite; display: none;
+  }
+  .busy .spinner { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .errbox {
+    background: color-mix(in srgb, var(--bad) 12%, var(--panel)); border: 1px solid var(--bad);
+    color: var(--bad); border-radius: 10px; padding: 10px 14px; margin-top: 12px; font-size: 14px;
+  }
+  .warnbox {
+    background: color-mix(in srgb, var(--warn) 12%, var(--panel)); border: 1px solid var(--warn);
+    color: var(--warn); border-radius: 10px; padding: 10px 14px; margin-top: 12px; font-size: 13.5px;
+  }
+  .sumrow { display: flex; justify-content: space-between; gap: 14px; padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
+  .sumrow:last-child { border-bottom: 0; }
+  .sumrow .k { color: var(--muted); }
+  .sumrow .v { font-weight: 700; text-align: right; }
+  .chart { margin-top: 14px; }
+  .bar-row { display: grid; grid-template-columns: 92px 1fr 130px; gap: 10px; align-items: center; margin: 5px 0; font-size: 12.5px; }
+  .bar-track { background: var(--panel2); border-radius: 6px; height: 16px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 6px; min-width: 2px; transition: width .5s ease; }
+  .bar-label { color: var(--muted); text-align: right; white-space: nowrap; }
+  .preview {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px; max-height: 260px; overflow: auto; white-space: pre; margin-top: 12px;
+  }
+  .big { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+  .big small { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+  .stat { background: var(--panel2); border-radius: 12px; padding: 12px; text-align: center; }
+  .stat .big small { display: block; margin-top: 2px; }
+  footer { color: var(--muted); font-size: 12.5px; margin-top: 26px; text-align: center; }
+  code { background: var(--panel2); border-radius: 5px; padding: 1px 5px; font-size: .9em; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>⚽ Stryktipset System Reducer</h1>
+      <p class="sub">Reduce a full system to guaranteed single rows — same engine as the Rust CLI, running entirely in your browser.</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Toggle dark / light mode">🌗</button>
+  </header>
+
+  <div class="grid">
+    <!-- ============ LEFT: INPUT ============ -->
+    <div>
+      <div class="card">
+        <h2>Your system</h2>
+        <label for="system">13 entries, separated by commas (1, X, 2, or combos like 1X, X2, 1X2)</label>
+        <textarea id="system" spellcheck="false" placeholder="1,X,X2,2,1,1X2,1,X,1,2,1X,1,1X"></textarea>
+        <div class="btnrow" style="margin-top:8px">
+          <button class="btn ghost small" id="exampleBtn">Load example</button>
+        </div>
+        <div class="chips" id="chips" aria-hidden="true"></div>
+        <div class="est" id="estimate" aria-live="polite">Enter a system to see the full-system size.</div>
+      </div>
+
+      <div class="card">
+        <h2>Reduction settings</h2>
+        <label for="guarantee">Guarantee — correct matches if the result is in the full system</label>
+        <select id="guarantee">
+          <option value="11">11 correct</option>
+          <option value="12" selected>12 correct</option>
+          <option value="13">13 correct (no reduction)</option>
+        </select>
+
+        <label>Number of rows</label>
+        <div class="radio-row" id="modeRow">
+          <label class="on"><input type="radio" name="mode" value="auto" checked>As few as possible</label>
+          <label><input type="radio" name="mode" value="max">At most N</label>
+          <label><input type="radio" name="mode" value="exact">Exactly N</label>
+        </div>
+        <div class="row2" style="margin-top:10px">
+          <div id="numWrap" class="hidden">
+            <label for="numRows">N</label>
+            <input type="number" id="numRows" min="1" value="100">
+          </div>
+          <div id="restartWrap">
+            <label for="restarts">Greedy restarts</label>
+            <input type="number" id="restarts" min="1" max="200" value="10">
+          </div>
+        </div>
+
+        <label>Algorithm</label>
+        <div class="seg" id="algoSeg">
+          <button type="button" data-v="greedy" class="on">Greedy · fast</button>
+          <button type="button" data-v="anneal">Annealing · fewer rows</button>
+        </div>
+
+        <details id="annealBox" class="hidden">
+          <summary>Annealing settings</summary>
+          <div class="row3">
+            <div><label for="iterations">Iterations</label><input type="number" id="iterations" min="1000" step="1000" value="200000"></div>
+            <div><label for="sample">Sample</label><input type="number" id="sample" min="1" max="50" value="12"></div>
+            <div><label for="timeLimit">Time limit (s, 0 = none)</label><input type="number" id="timeLimit" min="0" step="1" value="0"></div>
+          </div>
+          <div class="row2">
+            <div><label for="tStart">Start temperature</label><input type="number" id="tStart" step="0.05" value="0.6"></div>
+            <div><label for="tEnd">End temperature</label><input type="number" id="tEnd" step="0.05" value="0.1"></div>
+          </div>
+        </details>
+
+        <details>
+          <summary>Advanced</summary>
+          <label for="seed">Random seed (empty = random)</label>
+          <input type="number" id="seed" placeholder="e.g. 42">
+          <div class="row2">
+            <div>
+              <label for="memCells">Memory limit (neighbour table)</label>
+              <select id="memCells">
+                <option value="32000000">32M cells (~128 MB)</option>
+                <option value="64000000" selected>64M cells (~256 MB)</option>
+                <option value="128000000">128M cells (~512 MB)</option>
+                <option value="250000000">250M cells (~1 GB)</option>
+              </select>
+            </div>
+            <div>
+              <label for="rowPrice">Price per row (SEK)</label>
+              <input type="number" id="rowPrice" min="0" step="0.5" value="1">
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label for="product">Product name</label>
+              <select id="product">
+                <option>Stryktipset</option>
+                <option>Europatipset</option>
+              </select>
+            </div>
+            <div>
+              <label>&nbsp;</label>
+              <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:var(--text)">
+                <input type="checkbox" id="crlf" style="width:auto"> Windows line endings (CRLF)
+              </label>
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:var(--text)">
+            <input type="checkbox" id="hitDist" style="width:auto"> Compute hit distribution (best result) — can take a while on big systems
+          </label>
+          <div class="hint">Browser budget: 2×10⁸ operations. The CLI verifies with up to 3×10⁹.</div>
+        </details>
+
+        <div class="btnrow">
+          <button class="btn" id="runBtn">Reduce system</button>
+          <button class="btn ghost hidden" id="cancelBtn">Cancel</button>
+        </div>
+        <div class="status" id="status" aria-live="polite">
+          <span class="spinner"></span><span id="statusText">Ready.</span>
+        </div>
+        <div id="errbox" class="errbox hidden"></div>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT: RESULTS ============ -->
+    <div>
+      <div class="card hidden" id="resultCard">
+        <h2>Result</h2>
+        <div class="stats3">
+          <div class="stat"><div class="big" id="stRows">–</div><small>rows written</small></div>
+          <div class="stat"><div class="big" id="stCov">–</div><small>coverage %</small></div>
+          <div class="stat"><div class="big" id="stCost">–</div><small>cost (SEK)</small></div>
+        </div>
+        <div id="warnbox" class="warnbox hidden"></div>
+        <div id="summary"></div>
+        <div class="chart hidden" id="chart"></div>
+        <div class="btnrow">
+          <button class="btn small" id="downloadBtn">⬇ Download .txt</button>
+          <button class="btn ghost small" id="copyBtn">Copy file</button>
+        </div>
+      </div>
+
+      <div class="card hidden" id="previewCard">
+        <h2>Row preview</h2>
+        <div class="preview" id="preview"></div>
+        <div class="hint" id="previewNote"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Powered by the same Rust engine as <code>reduce-rs</code>, compiled to WebAssembly and embedded in this page.<br>
+    Everything runs locally — nothing is uploaded. The `.txt` file it produces is byte-identical to the CLI's for the same seed and settings.
+  </footer>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Embedded wasm glue + module (injected by inline.py)
+// ---------------------------------------------------------------------------
+const GLUE_JS = __GLUE_JSON__;
+const WASM_B64 = "__WASM_B64__";
+
+// ---------------------------------------------------------------------------
+// Worker source: glue + bootstrap. One persistent worker handles validate /
+// estimate; heavy reduce runs get a fresh worker that is terminated after
+// the run so wasm linear memory never accumulates between runs.
+// ---------------------------------------------------------------------------
+const WORKER_SRC = GLUE_JS + "\n" + `
+let ready = null;
+function init() {
+  if (!ready) {
+    ready = new Promise((resolve, reject) => {
+      try {
+        const bytes = Uint8Array.from(atob("${WASM_B64}"), c => c.charCodeAt(0));
+        wasm_bindgen(bytes).then(() => resolve(), reject);
+      } catch (e) { reject(e); }
+    });
+  }
+  return ready;
+}
+self.onmessage = async (e) => {
+  const msg = e.data;
+  try {
+    await init();
+    if (msg.type === "validate") {
+      self.postMessage({ type: "validated", id: msg.id, result: JSON.parse(wasm_bindgen.validate(msg.system)) });
+    } else if (msg.type === "estimate") {
+      const r = JSON.parse(wasm_bindgen.estimate(msg.system, BigInt(msg.guarantee), BigInt(msg.maxMemoryCells)));
+      self.postMessage({ type: "estimated", id: msg.id, result: r });
+    } else if (msg.type === "run") {
+      const res = JSON.parse(wasm_bindgen.reduce(JSON.stringify(msg.params)));
+      self.postMessage({ type: "done", result: res });
+    }
+  } catch (err) {
+    self.postMessage({ type: "error", message: (err && err.message) ? String(err.message) : String(err) });
+  }
+};
+// Fired once after bootstrap: the page revokes the worker's blob URL on it.
+self.postMessage({ type: "ready" });
+`;
+
+function makeWorker() {
+  const url = URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }));
+  const w = new Worker(url);
+  w.addEventListener("message", function onReady(e) {
+    if (e.data && e.data.type === "ready") {
+      w.removeEventListener("message", onReady);
+      URL.revokeObjectURL(url);
+    }
+  });
+  return w;
+}
+
+// Persistent worker for cheap live feedback (validate + estimate).
+let utilWorker = null;
+let utilId = 0;
+const pending = new Map();
+function getUtilWorker() {
+  if (utilWorker) return utilWorker;
+  utilWorker = makeWorker();
+  utilWorker.onmessage = (e) => {
+    const { id, result } = e.data;
+    const p = pending.get(id);
+    // A promise resolves to a single value: hand it the JSON result itself
+    // (passing `type, result` here used to resolve to the type string).
+    if (p) { pending.delete(id); p(result); }
+  };
+  utilWorker.onerror = () => { utilWorker = null; };
+  return utilWorker;
+}
+function utilCall(type, payload) {
+  return new Promise((resolve) => {
+    const id = ++utilId;
+    pending.set(id, resolve);
+    getUtilWorker().postMessage(Object.assign({ type, id }, payload));
+  });
+}
+
+// ---------------------------------------------------------------------------
+// DOM helpers & theme
+// ---------------------------------------------------------------------------
+const $ = (id) => document.getElementById(id);
+const root = document.documentElement;
+const themeBtn = $("themeBtn");
+function applyTheme(t) {
+  root.setAttribute("data-theme", t);
+  try { localStorage.setItem("reduce-theme", t); } catch (e) {}
+}
+applyTheme((() => {
+  try { const s = localStorage.getItem("reduce-theme"); if (s) return s; } catch (e) {}
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+})());
+themeBtn.onclick = () =>
+  applyTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
+
+// ---------------------------------------------------------------------------
+// Input parsing chips + live estimate (debounced)
+// ---------------------------------------------------------------------------
+const systemEl = $("system"), chipsEl = $("chips"), estEl = $("estimate");
+
+function renderChips(entries) {
+  chipsEl.innerHTML = "";
+  (entries || []).forEach((s) => {
+    const c = document.createElement("span");
+    c.className = "chip";
+    c.textContent = s;
+    chipsEl.appendChild(c);
+  });
+}
+
+let estTimer = null;
+function requestCheck() {
+  clearTimeout(estTimer);
+  estTimer = setTimeout(async () => {
+    const sys = systemEl.value.trim();
+    if (!sys) { chipsEl.innerHTML = ""; estEl.textContent = "Enter a system to see the full-system size."; return; }
+    const [v, e] = await Promise.all([
+      utilCall("validate", { system: sys }),
+      utilCall("estimate", { system: sys, guarantee: +$("guarantee").value, maxMemoryCells: +$("memCells").value }),
+    ]);
+    if (!v.ok) {
+      renderChips(null);
+      estEl.innerHTML = '<span class="toobig">' + escapeHtml(v.error) + "</span>";
+      return;
+    }
+    renderChips(v.entries);
+    if (!e.ok) { estEl.innerHTML = '<span class="toobig">' + escapeHtml(e.error) + "</span>"; return; }
+    const bytes = e.cells * 4;
+    const table = bytes < 1048576
+      ? (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + " KB"
+      : (bytes / 1048576).toFixed(0) + " MB";
+    let line = "Full system: <b>" + e.size.toLocaleString() + "</b> rows · each row covers <b>" +
+      e.ball + "</b> outcomes · lower bound <b>" + e.lower_bound + "</b> rows · table: <b>" +
+      table + "</b>";
+    if (e.too_large) line += '<br><span class="toobig">⚠ Too large for the current memory limit — raise the guarantee or the memory limit.</span>';
+    estEl.innerHTML = line;
+  }, 150);
+}
+["input", "change"].forEach((ev) => {
+  systemEl.addEventListener(ev, requestCheck);
+  $("guarantee").addEventListener(ev, requestCheck);
+  $("memCells").addEventListener(ev, requestCheck);
+});
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+$("exampleBtn").onclick = () => {
+  systemEl.value = "1,X,X2,2,1,1X2,1,X,1,2,1X,1,1X";
+  requestCheck();
+};
+
+// Row-mode radios
+const modeRow = $("modeRow");
+modeRow.addEventListener("change", () => {
+  modeRow.querySelectorAll("label").forEach((l) =>
+    l.classList.toggle("on", l.querySelector("input").checked));
+  const mode = modeRow.querySelector("input:checked").value;
+  $("numWrap").classList.toggle("hidden", mode === "auto");
+});
+
+// Algorithm segmented control
+const algoSeg = $("algoSeg");
+algoSeg.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  algoSeg.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b === btn));
+  $("annealBox").classList.toggle("hidden", btn.dataset.v !== "anneal");
+});
+
+// ---------------------------------------------------------------------------
+// Run
+// ---------------------------------------------------------------------------
+const runBtn = $("runBtn"), cancelBtn = $("cancelBtn");
+const statusEl = $("status"), statusText = $("statusText"), errbox = $("errbox");
+let runWorker = null;
+let timer = null;
+let startTime = 0;
+
+function setBusy(busy, msg) {
+  runBtn.disabled = busy;
+  cancelBtn.classList.toggle("hidden", !busy);
+  statusEl.classList.toggle("busy", busy);
+  statusText.textContent = msg || "";
+}
+
+function friendlyError(msg) {
+  if (/memory|unreachable|abort|RuntimeError/i.test(msg)) {
+    return "The system ran out of memory. Try a higher guarantee, fewer rows, or a smaller memory limit.";
+  }
+  return msg;
+}
+
+function buildParams() {
+  const mode = modeRow.querySelector("input:checked").value;
+  const p = {
+    system: systemEl.value.trim(),
+    guarantee: +$("guarantee").value,
+    algorithm: algoSeg.querySelector(".on").dataset.v,
+    restarts: +$("restarts").value || 10,
+    max_memory_cells: +$("memCells").value,
+    row_price: +$("rowPrice").value || 1,
+    product: $("product").value,
+    crlf: $("crlf").checked,
+    hit: $("hitDist").checked,
+  };
+  if (mode === "max") p.max_rows = Math.max(1, +$("numRows").value || 1);
+  if (mode === "exact") p.rows = Math.max(1, +$("numRows").value || 1);
+  if (p.algorithm === "anneal") {
+    p.iterations = Math.max(1000, +$("iterations").value || 200000);
+    p.sample = Math.max(1, +$("sample").value || 12);
+    p.t_start = +$("tStart").value || 0.6;
+    p.t_end = +$("tEnd").value || 0.1;
+    const tl = +$("timeLimit").value;
+    if (tl > 0) p.time_limit = tl;
+  }
+  const seedStr = $("seed").value.trim();
+  if (seedStr !== "") {
+    // Sent as a decimal string so the full signed 64-bit range survives;
+    // JS numbers stop being exact above 2^53.
+    let seedOk = /^[+-]?\d+$/.test(seedStr);
+    if (seedOk) {
+      const b = BigInt(seedStr);
+      seedOk = b >= -(2n ** 63n) && b <= 2n ** 63n - 1n;
+    }
+    if (!seedOk) {
+      return { error: "Seed must be a whole number that fits in a signed 64-bit integer, e.g. 42 or 3000000000." };
+    }
+    p.seed = seedStr;
+  } else {
+    p.seed = Math.floor(Math.random() * 0xffffffff);
+  }
+  return p;
+}
+
+function startTimer() {
+  startTime = Date.now();
+  clearInterval(timer);
+  timer = setInterval(() => {
+    statusText.textContent = "Reducing… " + ((Date.now() - startTime) / 1000).toFixed(0) + " s elapsed";
+  }, 500);
+}
+
+runBtn.onclick = () => {
+  const params = buildParams();
+  if (params.error) {
+    errbox.textContent = params.error;
+    errbox.classList.remove("hidden");
+    return;
+  }
+  errbox.classList.add("hidden");
+  $("resultCard").classList.add("hidden");
+  $("previewCard").classList.add("hidden");
+  setBusy(true, "Starting engine…");
+  startTimer();
+
+  runWorker = makeWorker(); // fresh worker per run: clean memory every time
+  runWorker.onmessage = (e) => {
+    const msg = e.data;
+    if (msg.type === "done") {
+      clearInterval(timer);
+      setBusy(false, "Done in " + msg.result.elapsed_s.toFixed(1) + " s.");
+      runWorker.terminate(); runWorker = null;
+      showResult(params, msg.result);
+    } else if (msg.type === "error") {
+      clearInterval(timer);
+      setBusy(false, "Failed.");
+      runWorker.terminate(); runWorker = null;
+      errbox.textContent = friendlyError(msg.message);
+      errbox.classList.remove("hidden");
+    }
+  };
+  runWorker.onerror = (e) => {
+    clearInterval(timer);
+    setBusy(false, "Failed.");
+    errbox.textContent = friendlyError(e.message || "The worker crashed unexpectedly.");
+    errbox.classList.remove("hidden");
+  };
+  runWorker.postMessage({ type: "run", params });
+};
+
+cancelBtn.onclick = () => {
+  if (runWorker) { runWorker.terminate(); runWorker = null; }
+  clearInterval(timer);
+  setBusy(false, "Cancelled.");
+};
+
+// ---------------------------------------------------------------------------
+// Results rendering
+// ---------------------------------------------------------------------------
+let lastResult = null, lastParams = null;
+
+function fmtInt(n) { return n.toLocaleString("en-US"); }
+
+function showResult(params, r) {
+  lastResult = r; lastParams = params;
+  $("stRows").innerHTML = fmtInt(r.rows_written) + "<small> / " + fmtInt(r.size) + "</small>";
+  $("stCov").textContent = r.covered_pct.toFixed(1) + "%";
+  $("stCost").textContent = fmtInt(Math.round(r.cost));
+
+  const wb = $("warnbox");
+  if (r.warnings && r.warnings.length) {
+    wb.innerHTML = r.warnings.map(escapeHtml).join("<br>");
+    wb.classList.remove("hidden");
+  } else wb.classList.add("hidden");
+
+  const lines = [];
+  lines.push(sumRow("System", r.entries.join(",")));
+  lines.push(sumRow("Full system", fmtInt(r.size) + " rows"));
+  lines.push(sumRow("Guarantee", r.guarantee + " correct" + (r.partial ? " — partial cover" : "")));
+  lines.push(sumRow("Rows needed", r.needed + (r.lower_bound != null ? " (lower bound " + r.lower_bound + ")" : "")));
+  lines.push(sumRow("Coverage", r.covered + "/" + fmtInt(r.size) + " outcomes (" + r.covered_pct.toFixed(2) + " %)"));
+  lines.push(sumRow("Cost", r.cost.toFixed(2).replace(/\.00$/, "") + " SEK"));
+  lines.push(sumRow("Time", r.elapsed_s.toFixed(2) + " s"));
+  lines.push(sumRow("Seed", String(r.seed)));
+  $("summary").innerHTML = lines.join("");
+
+  // Hit distribution chart
+  const chart = $("chart");
+  chart.innerHTML = "";
+  if (r.hit_dist && Object.keys(r.hit_dist).length) {
+    const entries = Object.entries(r.hit_dist).map(([k, v]) => [+k, v]).sort((a, b) => b[0] - a[0]);
+    const max = Math.max(...entries.map(([, v]) => v));
+    let html = "<h2 style='margin-top:18px'>Best result distribution</h2>";
+    for (const [correct, count] of entries) {
+      const pct = (100 * count / r.size);
+      html += '<div class="bar-row"><div class="bar-label">' + correct + " correct</div>" +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + (100 * count / max).toFixed(1) + '%"></div></div>' +
+        '<div class="bar-label">' + fmtInt(count) + " (" + pct.toFixed(1) + "%)</div></div>";
+    }
+    chart.innerHTML = html;
+    chart.classList.remove("hidden");
+  } else if (r.hit_skipped) {
+    chart.innerHTML = "<div class='hint' style='margin-top:12px'>Hit distribution skipped — this run exceeds the browser's 2×10⁸-operation budget (the CLI verifies up to 3×10⁹). The rows and the downloaded file are unaffected.</div>";
+    chart.classList.remove("hidden");
+  } else {
+    chart.classList.add("hidden");
+  }
+
+  // Preview
+  const preview = $("preview");
+  let text = "";
+  r.lines.forEach((l, i) => { text += (i + 1) + ".  " + l + "\n"; });
+  preview.textContent = text.trimEnd();
+  $("previewNote").textContent = r.lines_shown < r.rows_written
+    ? "Showing " + r.lines_shown + " of " + fmtInt(r.rows_written) + " rows. Download the file to see all of them."
+    : "";
+  $("resultCard").classList.remove("hidden");
+  $("previewCard").classList.remove("hidden");
+}
+
+function sumRow(k, v) {
+  return '<div class="sumrow"><span class="k">' + escapeHtml(k) + '</span><span class="v">' + escapeHtml(v) + "</span></div>";
+}
+
+// ---------------------------------------------------------------------------
+// Download / copy
+// ---------------------------------------------------------------------------
+function outputFilename(params, r) {
+  const parts = [params.product.toLowerCase(), r.entries.join("-"), "g" + r.guarantee];
+  if (params.rows != null) parts.push("k" + params.rows);
+  if (params.max_rows != null) parts.push("n" + params.max_rows);
+  parts.push(params.algorithm);
+  parts.push("s" + r.seed);
+  return parts.join("_") + ".txt";
+}
+
+$("downloadBtn").onclick = () => {
+  if (!lastResult) return;
+  const blob = new Blob([lastResult.text], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = outputFilename(lastParams, lastResult);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+
+$("copyBtn").onclick = async () => {
+  if (!lastResult) return;
+  try {
+    await navigator.clipboard.writeText(lastResult.text);
+    statusText.textContent = "File copied (" + fmtInt(lastResult.rows_written) + " rows).";
+  } catch (e) {
+    statusText.textContent = "Copy failed — use the download button instead.";
+  }
+};
+</script>
+</body>
+</html>

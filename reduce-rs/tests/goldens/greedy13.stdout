@@ -1,0 +1,12 @@
+Stryktipset reduced system
+  System:        1,X,X2,2,1,1X2,1,X,1,2,1X,1,1X
+  Full system:   24 rows
+  Guarantee:     13 correct, as few rows as possible
+  Algorithm:     greedy, seed 42
+  Rows needed:   24 for the full guarantee
+  Rows written:  24, cost 24 SEK
+  Guarantee 13 holds for 24/24 outcomes (100.00 %)
+  Best result over all outcomes of the full system:
+    13 correct:       24 outcomes (100.00 %)
+  Time:          <TIME> s
+  Output file:   stryktipset_1-X-X2-2-1-1X2-1-X-1-2-1X-1-1X_g13_greedy_s42.txt
