@@ -166,3 +166,7 @@ The Rust and Python versions use different random number generators.
 With the same seed, greedy output can match exactly, but anneal output
 does not. Compare the results by row count and guarantee, not by exact
 text.
+
+## License
+
+This project is licensed under the Mozilla Public License 2.0 (MPL-2.0). See [LICENSE](LICENSE) for the full text.
