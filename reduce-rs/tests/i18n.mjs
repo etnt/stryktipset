@@ -155,6 +155,7 @@ try {
   for (const id of htmlIds) getById(id); // pre-create every id in the HTML
 
   const doc = {
+    addEventListener() {},
     documentElement: makeStubEl("html"),
     title: "",
     getElementById: getById,

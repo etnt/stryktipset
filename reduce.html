@@ -160,6 +160,18 @@
   .disclaimer { color: var(--muted); font-size: 11px; text-align: center; max-width: 700px; margin: 14px auto 0; }
   .repo-link { text-align: center; font-size: 11px; margin: 8px 0 0; }
   .repo-link a { color: var(--muted); }
+  .info-wrap { position: relative; display: inline-flex; align-items: center; }
+  .info-btn {
+    background: none; border: 0; color: var(--muted); cursor: pointer;
+    font-size: 17px; line-height: 1; padding: 2px 4px;
+  }
+  .info-btn:hover, .info-btn[aria-expanded="true"] { color: var(--text); }
+  .info-pop {
+    position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 10; width: 280px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: var(--shadow); padding: 10px 12px; font-size: 13px; line-height: 1.45;
+  }
+  .info-pop a { color: inherit; }
   .hidden { display: none; }
 </style>
 </head>
@@ -304,6 +316,10 @@
         <div class="btnrow">
           <button class="btn small" id="downloadBtn" data-i18n="download">⬇ Download .txt</button>
           <button class="btn ghost small" id="copyBtn" data-i18n="copy">Copy file</button>
+          <span class="info-wrap">
+            <button class="info-btn" id="infoBtn" aria-expanded="false" aria-controls="infoPop" data-i18n-title="info_title" data-i18n-aria="info_title" title="About the file format">&#9432;</button>
+            <div class="info-pop hidden" id="infoPop" role="dialog" data-i18n-html="info_html">The file follows Svenska Spel's file format for the <em>Externa systemspel</em> service.</div>
+          </span>
         </div>
       </div>
 
@@ -481,6 +497,8 @@ const I18N = {
     copy: "Kopiera fil",
     h_preview: "Förhandsvisning av rader",
     disclaimer: "Verktyget tillhandahålls i befintligt skick, utan någon som helst garanti, inklusive för resultatens korrekthet. Spel innebär risker och kan leda till ekonomisk förlust; spela endast för pengar du har råd att förlora. Om spel är ett problem för dig, sök hjälp (Stödlinjen: 020-819 100).",
+    info_title: "Om filformatet",
+    info_html: 'Filen följer Svenska Spels filformat för tjänsten <em>Externa systemspel</em>, så den kan laddas upp där. Se <a href="https://github.com/etnt/stryktipset/blob/main/README-external-stryktipset-format.md" target="_blank" rel="noopener">filbeskrivningen</a>.',
     footer_html: 'Drivs av samma Rust-motor som <code>reduce-rs</code>, kompilerad till WebAssembly och inbäddad i denna sida.<br>Allt körs lokalt — inget laddas upp. <code>.txt</code>-filen den skapar är byte-identisk med CLI:ns för samma frö och inställningar.',
 
     // Dynamic text
@@ -573,6 +591,8 @@ const I18N = {
     copy: "Copy file",
     h_preview: "Row preview",
     disclaimer: "This tool is provided \"as is\", without any warranty of any kind, including as to the correctness of its results. Betting involves risk and can lead to financial loss; only bet what you can afford to lose. If gambling is a problem for you, seek help (in Sweden: Stödlinjen, 020-819 100).",
+    info_title: "About the file format",
+    info_html: 'The file follows Svenska Spel\u2019s file format for the <em>Externa systemspel</em> service, so it can be uploaded there. See the <a href="https://github.com/etnt/stryktipset/blob/main/README-external-stryktipset-format.md" target="_blank" rel="noopener">format description</a>.',
     footer_html: 'Powered by the same Rust engine as <code>reduce-rs</code>, compiled to WebAssembly and embedded in this page.<br>Everything runs locally — nothing is uploaded. The <code>.txt</code> file it produces is byte-identical to the CLI\u2019s for the same seed and settings.',
 
     // Dynamic text
@@ -688,6 +708,7 @@ function applyLang(l) {
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
   document.querySelectorAll("[data-i18n-title]").forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
   langSvBtn.classList.toggle("on", lang === "sv");
   langEnBtn.classList.toggle("on", lang === "en");
@@ -1025,6 +1046,13 @@ $("downloadBtn").onclick = () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 };
 
+(() => {
+  const btn = $("infoBtn"), pop = $("infoPop");
+  const setOpen = (o) => { pop.classList.toggle("hidden", !o); btn.setAttribute("aria-expanded", o); };
+  btn.onclick = (e) => { e.stopPropagation(); setOpen(pop.classList.contains("hidden")); };
+  document.addEventListener("click", (e) => { if (!pop.contains(e.target)) setOpen(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
+})();
 $("copyBtn").onclick = async () => {
   if (!lastResult) return;
   try {
