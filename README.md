@@ -45,7 +45,9 @@ You have three options.
 1. **Web page (easiest).** Open `reduce.html` in a modern browser. The
    page runs on your computer. Nothing is uploaded. The page is tested
    when you open it over HTTP. Opening the file straight from disk may
-   also work, but this is not tested.
+   also work, but this is not tested. The page is bilingual: Swedish by
+   default, with an 🇸🇪 SV / 🇬🇧 EN toggle in the header for English.
+   The choice is saved in the browser.
 2. **Command line, Rust version (recommended).** This is the `reduce-rs`
    program. It is faster on large systems and has no Python dependencies.
    See [Command line (Rust)](#command-line-rust) below.

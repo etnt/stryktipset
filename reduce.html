@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -53,6 +53,17 @@
     border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 15px;
     box-shadow: var(--shadow);
   }
+  .lang-btns {
+    display: flex; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .lang-btn {
+    border: 0; background: var(--panel); color: var(--muted);
+    padding: 8px 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .lang-btn + .lang-btn { border-left: 1px solid var(--border); }
+  .lang-btn.on { background: var(--chip-bg); color: var(--text); }
   .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 18px; align-items: start; }
   @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
   .card {
@@ -146,6 +157,9 @@
   .stat .big small { display: block; margin-top: 2px; }
   footer { color: var(--muted); font-size: 12.5px; margin-top: 26px; text-align: center; }
   code { background: var(--panel2); border-radius: 5px; padding: 1px 5px; font-size: .9em; }
+  .disclaimer { color: var(--muted); font-size: 11px; text-align: center; max-width: 700px; margin: 14px auto 0; }
+  .repo-link { text-align: center; font-size: 11px; margin: 8px 0 0; }
+  .repo-link a { color: var(--muted); }
   .hidden { display: none; }
 </style>
 </head>
@@ -153,40 +167,46 @@
 <div class="wrap">
   <header>
     <div>
-      <h1>⚽ Stryktipset System Reducer <span class="version">dev</span></h1>
-      <p class="sub">Reduce a full system to guaranteed single rows — same engine as the Rust CLI, running entirely in your browser.</p>
+      <h1>⚽ <span data-i18n="title">Stryktipset System Reducer</span> <span class="version">dev</span></h1>
+      <p class="sub" data-i18n="sub">Reduce a full system to guaranteed single rows — running entirely in your browser.</p>
     </div>
-    <button class="theme-btn" id="themeBtn" title="Toggle dark / light mode">🌗</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="lang-btns" role="group" data-i18n-title="lang_group">
+        <button class="lang-btn" id="langSv" aria-pressed="true" aria-label="Svenska">🇸🇪 SV</button>
+        <button class="lang-btn" id="langEn" aria-pressed="false" aria-label="English">🇬🇧 EN</button>
+      </div>
+      <button class="theme-btn" id="themeBtn" data-i18n-title="theme_title" title="Toggle dark / light mode">🌗</button>
+    </div>
   </header>
 
   <div class="grid">
     <!-- ============ LEFT: INPUT ============ -->
     <div>
       <div class="card">
-        <h2>Your system</h2>
-        <label for="system">13 entries, separated by commas (1, X, 2, or combos like 1X, X2, 1X2)</label>
+        <h2 data-i18n="h_yoursystem">Your system</h2>
+        <label for="system" data-i18n="lbl_system">13 entries, separated by commas (1, X, 2, or combos like 1X, X2, 1X2)</label>
         <textarea id="system" spellcheck="false" placeholder="1,X,X2,2,1,1X2,1,X,1,2,1X,1,1X"></textarea>
         <div class="btnrow" style="margin-top:8px">
-          <button class="btn ghost small" id="exampleBtn">Load example</button>
+          <button class="btn ghost small" id="exampleBtn" data-i18n="example">Load example</button>
         </div>
         <div class="chips" id="chips" aria-hidden="true"></div>
-        <div class="est" id="estimate" aria-live="polite">Enter a system to see the full-system size.</div>
+        <div class="est" id="estimate" aria-live="polite"></div>
       </div>
 
       <div class="card">
-        <h2>Reduction settings</h2>
-        <label for="guarantee">Guarantee — correct matches if the result is in the full system</label>
+        <h2 data-i18n="h_settings">Reduction settings</h2>
+        <label for="guarantee" data-i18n="lbl_guarantee">Guarantee — correct matches if the result is in the full system</label>
         <select id="guarantee">
-          <option value="11">11 correct</option>
-          <option value="12" selected>12 correct</option>
-          <option value="13">13 correct (no reduction)</option>
+          <option value="11" data-i18n="opt_11">11 correct</option>
+          <option value="12" selected data-i18n="opt_12">12 correct</option>
+          <option value="13" data-i18n="opt_13">13 correct (no reduction)</option>
         </select>
 
-        <label>Number of rows</label>
+        <label data-i18n="lbl_numrows">Number of rows</label>
         <div class="radio-row" id="modeRow">
-          <label class="on"><input type="radio" name="mode" value="auto" checked>As few as possible</label>
-          <label><input type="radio" name="mode" value="max">At most N</label>
-          <label><input type="radio" name="mode" value="exact">Exactly N</label>
+          <label class="on"><input type="radio" name="mode" value="auto" checked><span data-i18n="mode_auto">As few as possible</span></label>
+          <label><input type="radio" name="mode" value="max"><span data-i18n="mode_max">At most N</span></label>
+          <label><input type="radio" name="mode" value="exact"><span data-i18n="mode_exact">Exactly N</span></label>
         </div>
         <div class="row2" style="margin-top:10px">
           <div id="numWrap" class="hidden">
@@ -194,52 +214,52 @@
             <input type="number" id="numRows" min="1" value="100">
           </div>
           <div id="restartWrap">
-            <label for="restarts">Greedy restarts</label>
+            <label for="restarts" data-i18n="lbl_restarts">Greedy restarts</label>
             <input type="number" id="restarts" min="1" max="200" value="10">
           </div>
         </div>
 
-        <label>Algorithm</label>
+        <label data-i18n="lbl_algorithm">Algorithm</label>
         <div class="seg" id="algoSeg">
-          <button type="button" data-v="greedy">Greedy · fast</button>
-          <button type="button" data-v="anneal" class="on">Annealing · fewer rows</button>
+          <button type="button" data-v="greedy" data-i18n="algo_greedy">Greedy · fast</button>
+          <button type="button" data-v="anneal" class="on" data-i18n="algo_anneal">Annealing · fewer rows</button>
         </div>
 
         <details id="annealBox">
-          <summary>Annealing settings</summary>
+          <summary data-i18n="sum_anneal">Annealing settings</summary>
           <div class="row3">
-            <div><label for="iterations">Iterations</label><input type="number" id="iterations" min="1000" step="1000" value="200000"></div>
-            <div><label for="sample">Sample</label><input type="number" id="sample" min="1" max="50" value="12"></div>
-            <div><label for="timeLimit">Time limit (s, 0 = none)</label><input type="number" id="timeLimit" min="0" step="1" value="0"></div>
+            <div><label for="iterations" data-i18n="lbl_iterations">Iterations</label><input type="number" id="iterations" min="1000" step="1000" value="200000"></div>
+            <div><label for="sample" data-i18n="lbl_sample">Sample</label><input type="number" id="sample" min="1" max="50" value="12"></div>
+            <div><label for="timeLimit" data-i18n="lbl_timelimit">Time limit (s, 0 = none)</label><input type="number" id="timeLimit" min="0" step="1" value="0"></div>
           </div>
           <div class="row2">
-            <div><label for="tStart">Start temperature</label><input type="number" id="tStart" step="0.05" value="0.6"></div>
-            <div><label for="tEnd">End temperature</label><input type="number" id="tEnd" step="0.05" value="0.1"></div>
+            <div><label for="tStart" data-i18n="lbl_tstart">Start temperature</label><input type="number" id="tStart" step="0.05" value="0.6"></div>
+            <div><label for="tEnd" data-i18n="lbl_tend">End temperature</label><input type="number" id="tEnd" step="0.05" value="0.1"></div>
           </div>
         </details>
 
         <details>
-          <summary>Advanced</summary>
-          <label for="seed">Random seed (empty = random)</label>
-          <input type="number" id="seed" placeholder="e.g. 42">
+          <summary data-i18n="sum_advanced">Advanced</summary>
+          <label for="seed" data-i18n="lbl_seed">Random seed (empty = random)</label>
+          <input type="number" id="seed" data-i18n-placeholder="ph_seed" placeholder="e.g. 42">
           <div class="row2">
             <div>
-              <label for="memCells">Memory limit (neighbour table)</label>
+              <label for="memCells" data-i18n="lbl_memcells">Memory limit (neighbour table)</label>
               <select id="memCells">
-                <option value="32000000">32M cells (~128 MB)</option>
-                <option value="64000000" selected>64M cells (~256 MB)</option>
-                <option value="128000000">128M cells (~512 MB)</option>
-                <option value="250000000">250M cells (~1 GB)</option>
+                <option value="32000000" data-i18n="cells32">32M cells (~128 MB)</option>
+                <option value="64000000" selected data-i18n="cells64">64M cells (~256 MB)</option>
+                <option value="128000000" data-i18n="cells128">128M cells (~512 MB)</option>
+                <option value="250000000" data-i18n="cells250">250M cells (~1 GB)</option>
               </select>
             </div>
             <div>
-              <label for="rowPrice">Price per row (SEK)</label>
+              <label for="rowPrice" data-i18n="lbl_rowprice">Price per row (SEK)</label>
               <input type="number" id="rowPrice" min="0" step="0.5" value="1">
             </div>
           </div>
           <div class="row2">
             <div>
-              <label for="product">Product name</label>
+              <label for="product" data-i18n="lbl_product">Product name</label>
               <select id="product">
                 <option>Stryktipset</option>
                 <option>Europatipset</option>
@@ -248,22 +268,22 @@
             <div>
               <label>&nbsp;</label>
               <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:var(--text)">
-                <input type="checkbox" id="crlf" style="width:auto"> Windows line endings (CRLF)
+                <input type="checkbox" id="crlf" style="width:auto"> <span data-i18n="lbl_crlf">Windows line endings (CRLF)</span>
               </label>
             </div>
           </div>
           <label style="display:flex;align-items:center;gap:8px;font-weight:500;color:var(--text)">
-            <input type="checkbox" id="hitDist" style="width:auto"> Compute hit distribution (best result) — can take a while on big systems
+            <input type="checkbox" id="hitDist" style="width:auto"> <span data-i18n="lbl_hitdist">Compute hit distribution (best result) — can take a while on big systems</span>
           </label>
-          <div class="hint">Browser budget: 2×10⁸ operations. The CLI verifies with up to 3×10⁹.</div>
+          <div class="hint" data-i18n="hint_budget">Browser budget: 2×10⁸ operations. The CLI verifies with up to 3×10⁹.</div>
         </details>
 
         <div class="btnrow">
-          <button class="btn" id="runBtn">Reduce system</button>
-          <button class="btn ghost hidden" id="cancelBtn">Cancel</button>
+          <button class="btn" id="runBtn" data-i18n="run">Reduce system</button>
+          <button class="btn ghost hidden" id="cancelBtn" data-i18n="cancel">Cancel</button>
         </div>
         <div class="status" id="status" aria-live="polite">
-          <span class="spinner"></span><span id="statusText">Ready.</span>
+          <span class="spinner"></span><span id="statusText"></span>
         </div>
         <div id="errbox" class="errbox hidden"></div>
       </div>
@@ -272,33 +292,35 @@
     <!-- ============ RIGHT: RESULTS ============ -->
     <div>
       <div class="card hidden" id="resultCard">
-        <h2>Result</h2>
+        <h2 data-i18n="h_result">Result</h2>
         <div class="stats3">
-          <div class="stat"><div class="big" id="stRows">–</div><small>rows written</small></div>
-          <div class="stat"><div class="big" id="stCov">–</div><small>coverage %</small></div>
-          <div class="stat"><div class="big" id="stCost">–</div><small>cost (SEK)</small></div>
+          <div class="stat"><div class="big" id="stRows">–</div><small data-i18n="st_rows">rows written</small></div>
+          <div class="stat"><div class="big" id="stCov">–</div><small data-i18n="st_cov">coverage %</small></div>
+          <div class="stat"><div class="big" id="stCost">–</div><small data-i18n="st_cost">cost (SEK)</small></div>
         </div>
         <div id="warnbox" class="warnbox hidden"></div>
         <div id="summary"></div>
         <div class="chart hidden" id="chart"></div>
         <div class="btnrow">
-          <button class="btn small" id="downloadBtn">⬇ Download .txt</button>
-          <button class="btn ghost small" id="copyBtn">Copy file</button>
+          <button class="btn small" id="downloadBtn" data-i18n="download">⬇ Download .txt</button>
+          <button class="btn ghost small" id="copyBtn" data-i18n="copy">Copy file</button>
         </div>
       </div>
 
       <div class="card hidden" id="previewCard">
-        <h2>Row preview</h2>
+        <h2 data-i18n="h_preview">Row preview</h2>
         <div class="preview" id="preview"></div>
         <div class="hint" id="previewNote"></div>
       </div>
     </div>
   </div>
 
-  <footer>
+  <footer data-i18n-html="footer_html">
     Powered by the same Rust engine as <code>reduce-rs</code>, compiled to WebAssembly and embedded in this page.<br>
     Everything runs locally — nothing is uploaded. The `.txt` file it produces is byte-identical to the CLI's for the same seed and settings.
   </footer>
+  <p class="disclaimer" data-i18n="disclaimer">This tool is provided "as is", without any warranty of any kind, including as to the correctness of its results. Betting involves risk and can lead to financial loss; only bet what you can afford to lose. If gambling is a problem for you, seek help (in Sweden: Stödlinjen, 020-819 100).</p>
+  <p class="repo-link"><a href="https://github.com/etnt/stryktipset" target="_blank" rel="noopener">github.com/etnt/stryktipset</a></p>
 </div>
 
 <script>
@@ -402,6 +424,288 @@ themeBtn.onclick = () =>
   applyTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
 
 // ---------------------------------------------------------------------------
+// I18n: Swedish is the default language, English is the alternative.
+// Static HTML text carries data-i18n attributes; every string the script
+// produces goes through t(). Entries may be strings or (args) => string.
+// ---------------------------------------------------------------------------
+const I18N = {
+  sv: {
+    title: "Stryktipset System Reducer",
+    sub: "Reducera ett helt system till garanterade enkelrader — kör helt i din webbläsare.",
+    lang_group: "Språk / Language",
+    theme_title: "Växla mörkt / ljust läge",
+    h_yoursystem: "Ditt system",
+    lbl_system: "13 tecken, separerade med kommatecken (1, X, 2, eller kombinationer som 1X, X2, 1X2)",
+    example: "Ladda exempel",
+    est_empty: "Ange ett system för att se hela systemets storlek.",
+    h_settings: "Inställningar för redukering",
+    lbl_guarantee: "Garanti — antal rätt om resultatet finns i hela systemet",
+    opt_11: "11 rätt",
+    opt_12: "12 rätt",
+    opt_13: "13 rätt (ingen redukning)",
+    lbl_numrows: "Antal rader",
+    mode_auto: "Så få som möjligt",
+    mode_max: "Högst N",
+    mode_exact: "Exakt N",
+    lbl_restarts: "Greedy-omstarter",
+    lbl_algorithm: "Algoritm",
+    algo_greedy: "Greedy · snabb",
+    algo_anneal: "Annealing · färre rader",
+    sum_anneal: "Annealing-inställningar",
+    lbl_iterations: "Iterationer",
+    lbl_sample: "Sample",
+    lbl_timelimit: "Tidsgräns (s, 0 = ingen)",
+    lbl_tstart: "Starttemperatur",
+    lbl_tend: "Sluttemperatur",
+    sum_advanced: "Avancerat",
+    lbl_seed: "Slumpfrö (tomt = slumpmässigt)",
+    ph_seed: "t.ex. 42",
+    lbl_memcells: "Minnesgräns (grannatabell)",
+    cells32: "32M celler (~128 MB)",
+    cells64: "64M celler (~256 MB)",
+    cells128: "128M celler (~512 MB)",
+    cells250: "250M celler (~1 GB)",
+    lbl_rowprice: "Pris per rad (kr)",
+    lbl_product: "Produktnamn",
+    lbl_crlf: "Windows-radbrytningar (CRLF)",
+    lbl_hitdist: "Beräkna träfffördelning (bästa resultat) — kan ta tid på stora system",
+    hint_budget: "Webbläsarens budget: 2×10⁸ operationer. CLI:n verifierar med upp till 3×10⁹.",
+    run: "Reducera systemet",
+    cancel: "Avbryt",
+    status_ready: "Klar.",
+    h_result: "Resultat",
+    st_rows: "skrivna rader",
+    st_cov: "täckning %",
+    st_cost: "kostnad (kr)",
+    download: "⬇ Ladda ner .txt",
+    copy: "Kopiera fil",
+    h_preview: "Förhandsvisning av rader",
+    disclaimer: "Verktyget tillhandahålls i befintligt skick, utan någon som helst garanti, inklusive för resultatens korrekthet. Spel innebär risker och kan leda till ekonomisk förlust; spela endast för pengar du har råd att förlora. Om spel är ett problem för dig, sök hjälp (Stödlinjen: 020-819 100).",
+    footer_html: 'Drivs av samma Rust-motor som <code>reduce-rs</code>, kompilerad till WebAssembly och inbäddad i denna sida.<br>Allt körs lokalt — inget laddas upp. <code>.txt</code>-filen den skapar är byte-identisk med CLI:ns för samma frö och inställningar.',
+
+    // Dynamic text
+    est_line: (size, ball, lb, table) =>
+      "Hela systemet: <b>" + size + "</b> rader · varje rad täcker <b>" + ball + "</b> utfall · nedre gräns <b>" + lb + "</b> rader · tabell: <b>" + table + "</b>",
+    est_toobig: "⚠ För stort för den nuvarande minnesgränsen — höj garantin eller minnesgränsen.",
+    status_starting: "Startar motorn…",
+    status_running: (s) => "Reducerar… " + s + " s förflutit",
+    status_done: (s) => "Klar på " + s + " s.",
+    status_failed: "Misslyckades.",
+    status_cancelled: "Avbruten.",
+    copy_ok: (n) => "Filen kopierad (" + n + " rader).",
+    copy_fail: "Kopieringen misslyckades — använd nedladdningsknappen istället.",
+    err_seed: "Fröet måste vara ett heltal som ryms i ett signerat 64-bitars heltal, t.ex. 42 eller 3000000000.",
+    err_oom: "Systemet fick slut på minne. Prova en högre garanti, färre rader eller en lägre minnesgräns.",
+    err_worker: "Arbetstråden kraschade oväntat.",
+
+    // Result summary
+    k_system: "System",
+    k_full: "Hela systemet",
+    k_guarantee: "Garanti",
+    k_needed: "Rader som behövs",
+    k_coverage: "Täckning",
+    k_cost: "Kostnad",
+    k_time: "Tid",
+    k_seed: "Frö",
+    sum_full: (n) => fmtInt(n) + " rader",
+    sum_guarantee: (g) => g + " rätt",
+    sum_partial: " — partiell täckning",
+    sum_lower: (lb) => " (nedre gräns " + lb + ")",
+    sum_coverage: (c, size, pct) => c + "/" + fmtInt(size) + " utfall (" + pct + " %)",
+    sum_cost: (s) => s + " kr",
+    sum_time: (s) => s + " s",
+
+    // Chart / preview
+    chart_title: "Fördelning av bästa resultat",
+    chart_correct: (n) => n + " rätt",
+    hit_skipped: "Träfffördelningen hoppades över — körningen överskrider webbläsarens budget på 2×10⁸ operationer (CLI:n verifierar upp till 3×10⁹). Raderna och den nedladdade filen påverkas inte.",
+    preview_note: (n, m) => "Visar " + n + " av " + fmtInt(m) + " rader. Ladda ner filen för att se alla.",
+  },
+  en: {
+    title: "Stryktipset System Reducer",
+    sub: "Reduce a full system to guaranteed single rows — running entirely in your browser.",
+    lang_group: "Språk / Language",
+    theme_title: "Toggle dark / light mode",
+    h_yoursystem: "Your system",
+    lbl_system: "13 entries, separated by commas (1, X, 2, or combos like 1X, X2, 1X2)",
+    example: "Load example",
+    est_empty: "Enter a system to see the full-system size.",
+    h_settings: "Reduction settings",
+    lbl_guarantee: "Guarantee — correct matches if the result is in the full system",
+    opt_11: "11 correct",
+    opt_12: "12 correct",
+    opt_13: "13 correct (no reduction)",
+    lbl_numrows: "Number of rows",
+    mode_auto: "As few as possible",
+    mode_max: "At most N",
+    mode_exact: "Exactly N",
+    lbl_restarts: "Greedy restarts",
+    lbl_algorithm: "Algorithm",
+    algo_greedy: "Greedy · fast",
+    algo_anneal: "Annealing · fewer rows",
+    sum_anneal: "Annealing settings",
+    lbl_iterations: "Iterations",
+    lbl_sample: "Sample",
+    lbl_timelimit: "Time limit (s, 0 = none)",
+    lbl_tstart: "Start temperature",
+    lbl_tend: "End temperature",
+    sum_advanced: "Advanced",
+    lbl_seed: "Random seed (empty = random)",
+    ph_seed: "e.g. 42",
+    lbl_memcells: "Memory limit (neighbour table)",
+    cells32: "32M cells (~128 MB)",
+    cells64: "64M cells (~256 MB)",
+    cells128: "128M cells (~512 MB)",
+    cells250: "250M cells (~1 GB)",
+    lbl_rowprice: "Price per row (SEK)",
+    lbl_product: "Product name",
+    lbl_crlf: "Windows line endings (CRLF)",
+    lbl_hitdist: "Compute hit distribution (best result) — can take a while on big systems",
+    hint_budget: "Browser budget: 2×10⁸ operations. The CLI verifies with up to 3×10⁹.",
+    run: "Reduce system",
+    cancel: "Cancel",
+    status_ready: "Ready.",
+    h_result: "Result",
+    st_rows: "rows written",
+    st_cov: "coverage %",
+    st_cost: "cost (SEK)",
+    download: "⬇ Download .txt",
+    copy: "Copy file",
+    h_preview: "Row preview",
+    disclaimer: "This tool is provided \"as is\", without any warranty of any kind, including as to the correctness of its results. Betting involves risk and can lead to financial loss; only bet what you can afford to lose. If gambling is a problem for you, seek help (in Sweden: Stödlinjen, 020-819 100).",
+    footer_html: 'Powered by the same Rust engine as <code>reduce-rs</code>, compiled to WebAssembly and embedded in this page.<br>Everything runs locally — nothing is uploaded. The <code>.txt</code> file it produces is byte-identical to the CLI\u2019s for the same seed and settings.',
+
+    // Dynamic text
+    est_line: (size, ball, lb, table) =>
+      "Full system: <b>" + size + "</b> rows · each row covers <b>" + ball + "</b> outcomes · lower bound <b>" + lb + "</b> rows · table: <b>" + table + "</b>",
+    est_toobig: "⚠ Too large for the current memory limit — raise the guarantee or the memory limit.",
+    status_starting: "Starting engine…",
+    status_running: (s) => "Reducing… " + s + " s elapsed",
+    status_done: (s) => "Done in " + s + " s.",
+    status_failed: "Failed.",
+    status_cancelled: "Cancelled.",
+    copy_ok: (n) => "File copied (" + n + " rows).",
+    copy_fail: "Copy failed — use the download button instead.",
+    err_seed: "Seed must be a whole number that fits in a signed 64-bit integer, e.g. 42 or 3000000000.",
+    err_oom: "The system ran out of memory. Try a higher guarantee, fewer rows, or a smaller memory limit.",
+    err_worker: "The worker crashed unexpectedly.",
+
+    // Result summary
+    k_system: "System",
+    k_full: "Full system",
+    k_guarantee: "Guarantee",
+    k_needed: "Rows needed",
+    k_coverage: "Coverage",
+    k_cost: "Cost",
+    k_time: "Time",
+    k_seed: "Seed",
+    sum_full: (n) => fmtInt(n) + " rows",
+    sum_guarantee: (g) => g + " correct",
+    sum_partial: " — partial cover",
+    sum_lower: (lb) => " (lower bound " + lb + ")",
+    sum_coverage: (c, size, pct) => c + "/" + fmtInt(size) + " outcomes (" + pct + " %)",
+    sum_cost: (s) => s + " SEK",
+    sum_time: (s) => s + " s",
+
+    // Chart / preview
+    chart_title: "Best result distribution",
+    chart_correct: (n) => n + " correct",
+    hit_skipped: "Hit distribution skipped — this run exceeds the browser's 2×10⁸-operation budget (the CLI verifies up to 3×10⁹). The rows and the downloaded file are unaffected.",
+    preview_note: (n, m) => "Showing " + n + " of " + fmtInt(m) + " rows. Download the file to see all of them.",
+  },
+};
+
+let lang = "sv";
+function t(key, ...args) {
+  let v = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.sv[key];
+  if (v === undefined) return key;
+  return typeof v === "function" ? v(...args) : v;
+}
+
+// Locale-aware integer formatting (sv-SE uses thin spaces, en-GB commas).
+function fmtInt(n) {
+  return Number(n).toLocaleString(lang === "sv" ? "sv-SE" : "en-GB");
+}
+
+// Locale-aware decimal formatting (sv-SE uses a decimal comma, en a point).
+// toFixed() never adds thousands grouping, so the dot is always the
+// decimal separator and can be swapped safely.
+function fmtDec(x, d) {
+  return Number(x).toFixed(d).replace(".", lang === "sv" ? "," : ".");
+}
+
+// Cost display: the same thousands grouping as fmtInt, with two decimals;
+// a trailing ",00"/".00" is dropped.
+function fmtCost(x) {
+  return Number(x)
+    .toLocaleString(lang === "sv" ? "sv-SE" : "en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    .replace(/[.,]00$/, "");
+}
+
+// Translate known Rust engine error messages at the UI boundary. The CLI
+// shares those strings, so they are not changed on the Rust side; anything
+// that does not match a pattern stays in the original English.
+function translateError(msg) {
+  if (lang !== "sv") return msg;
+  let m;
+  if ((m = msg.match(/^the system must have (\d+) entries, got (\d+): (.*)$/s)))
+    return "systemet måste ha " + m[1] + " tecken, fick " + m[2] + ": " + m[3];
+  if ((m = msg.match(/^match (\d+): empty entry$/)))
+    return "match " + m[1] + ": tom rad";
+  if ((m = msg.match(/^match (\d+): invalid sign\(s\) (.+?) in (.+?); use 1, X and 2$/)))
+    return "match " + m[1] + ": ogiltigt tecken " + m[2] + " i " + m[3] + "; använd 1, X och 2";
+  if ((m = msg.match(/^match (\d+): repeated sign in (.+)$/)))
+    return "match " + m[1] + ": upprepat tecken i " + m[2];
+  if ((m = msg.match(/^--guarantee must be 1\.\.(\d+)$/)))
+    return "--guarantee måste vara 1.." + m[1];
+  if (msg === "--rows/--max-rows must be at least 1")
+    return "--rows/--max-rows måste vara minst 1";
+  if ((m = msg.match(/^--rows (\d+) is more than the (\d+) rows of the full system$/)))
+    return "--rows " + m[1] + " är fler än de " + m[2] + " raderna i hela systemet";
+  if ((m = msg.match(/^neighbour table too large \((\d+) x (\d+) cells\)\. Use a smaller system, a higher --guarantee, or raise --max-memory-cells\.$/)))
+    return "grannatabellen är för stor (" + m[1] + " x " + m[2] + " celler). Använd ett mindre system, en högre --guarantee, eller höj --max-memory-cells.";
+  if ((m = msg.match(/^(\d+) rows exceeds the file limit of (\d+) single rows$/)))
+    return m[1] + " rader överskrider filgränsen på " + m[2] + " enkelrader";
+  if ((m = msg.match(/^cost (.+) SEK exceeds the limit of (.+) SEK$/)))
+    return "kostnaden " + m[1] + " kr överskrider gränsen på " + m[2] + " kr";
+  return msg;
+}
+
+// The last status message, stored so a language switch can re-render it
+// without a new run. Args are plain values suitable for t().
+let lastStatus = null;
+function setStatus(key, ...args) {
+  lastStatus = { key, args };
+  statusText.textContent = t(key, ...args);
+}
+
+const langSvBtn = $("langSv"), langEnBtn = $("langEn");
+function applyLang(l) {
+  lang = I18N[l] ? l : "sv";
+  document.documentElement.lang = lang;
+  document.title = t("title");
+  try { localStorage.setItem("reduce-lang", lang); } catch (e) {}
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  langSvBtn.classList.toggle("on", lang === "sv");
+  langEnBtn.classList.toggle("on", lang === "en");
+  langSvBtn.setAttribute("aria-pressed", lang === "sv");
+  langEnBtn.setAttribute("aria-pressed", lang === "en");
+  // Re-render dynamic text from stored state so a switch needs no new run.
+  renderEstimate();
+  renderError();
+  if (lastResult) showResult(lastParams, lastResult);
+  if (lastStatus) statusText.textContent = t(lastStatus.key, ...lastStatus.args);
+  else statusText.textContent = t("status_ready");
+}
+langSvBtn.onclick = () => applyLang("sv");
+langEnBtn.onclick = () => applyLang("en");
+// The initial applyLang() call lives at the end of the script, after all
+// DOM references and state variables it re-renders exist.
+
+// ---------------------------------------------------------------------------
 // Input parsing chips + live estimate (debounced)
 // ---------------------------------------------------------------------------
 const systemEl = $("system"), chipsEl = $("chips"), estEl = $("estimate");
@@ -416,32 +720,49 @@ function renderChips(entries) {
   });
 }
 
+// Last live-check state, kept so a language switch can re-render the
+// estimate line without re-querying the worker.
+let lastEst = null; // { vError } | { v, e }
+
+function renderEstimate() {
+  if (!lastEst) {
+    estEl.textContent = t("est_empty");
+    return;
+  }
+  if (lastEst.vError) {
+    estEl.innerHTML = '<span class="toobig">' + escapeHtml(translateError(lastEst.vError)) + "</span>";
+    return;
+  }
+  const { v, e } = lastEst;
+  const bytes = e.cells * 4;
+  const table = bytes < 1048576
+    ? fmtDec(bytes / 1024, bytes < 10240 ? 1 : 0) + " KB"
+    : fmtDec(bytes / 1048576, 0) + " MB";
+  let line = t("est_line", fmtInt(e.size), e.ball, e.lower_bound, table);
+  if (e.too_large) line += '<br><span class="toobig">' + escapeHtml(t("est_toobig")) + "</span>";
+  estEl.innerHTML = line;
+}
+
 let estTimer = null;
 function requestCheck() {
   clearTimeout(estTimer);
   estTimer = setTimeout(async () => {
     const sys = systemEl.value.trim();
-    if (!sys) { chipsEl.innerHTML = ""; estEl.textContent = "Enter a system to see the full-system size."; return; }
+    if (!sys) { chipsEl.innerHTML = ""; lastEst = null; renderEstimate(); return; }
     const [v, e] = await Promise.all([
       utilCall("validate", { system: sys }),
       utilCall("estimate", { system: sys, guarantee: +$("guarantee").value, maxMemoryCells: +$("memCells").value }),
     ]);
     if (!v.ok) {
       renderChips(null);
-      estEl.innerHTML = '<span class="toobig">' + escapeHtml(v.error) + "</span>";
+      lastEst = { vError: v.error };
+      renderEstimate();
       return;
     }
     renderChips(v.entries);
-    if (!e.ok) { estEl.innerHTML = '<span class="toobig">' + escapeHtml(e.error) + "</span>"; return; }
-    const bytes = e.cells * 4;
-    const table = bytes < 1048576
-      ? (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + " KB"
-      : (bytes / 1048576).toFixed(0) + " MB";
-    let line = "Full system: <b>" + e.size.toLocaleString() + "</b> rows · each row covers <b>" +
-      e.ball + "</b> outcomes · lower bound <b>" + e.lower_bound + "</b> rows · table: <b>" +
-      table + "</b>";
-    if (e.too_large) line += '<br><span class="toobig">⚠ Too large for the current memory limit — raise the guarantee or the memory limit.</span>';
-    estEl.innerHTML = line;
+    if (!e.ok) { lastEst = { vError: e.error }; renderEstimate(); return; }
+    lastEst = { v, e };
+    renderEstimate();
   }, 150);
 }
 ["input", "change"].forEach((ev) => {
@@ -487,18 +808,37 @@ let runWorker = null;
 let timer = null;
 let startTime = 0;
 
-function setBusy(busy, msg) {
+function setBusy(busy) {
   runBtn.disabled = busy;
   cancelBtn.classList.toggle("hidden", !busy);
   statusEl.classList.toggle("busy", busy);
-  statusText.textContent = msg || "";
 }
 
+// Classify an error: "oom" gets a dedicated friendly message (with a
+// language-specific text), anything else is shown as-is via translateError.
+let lastErr = null; // { raw } — raw English message from the engine
 function friendlyError(msg) {
-  if (/memory|unreachable|abort|RuntimeError/i.test(msg)) {
-    return "The system ran out of memory. Try a higher guarantee, fewer rows, or a smaller memory limit.";
-  }
-  return msg;
+  return /memory|unreachable|abort|RuntimeError/i.test(msg) ? "oom" : msg;
+}
+function showError(msg) {
+  lastErr = { raw: msg };
+  renderError();
+  errbox.classList.remove("hidden");
+}
+function renderError() {
+  if (!lastErr) return;
+  if (lastErr.key) { errbox.textContent = t(lastErr.key); return; }
+  const kind = friendlyError(lastErr.raw);
+  errbox.textContent = kind === "oom" ? t("err_oom") : translateError(kind);
+}
+function showErrKey(key) {
+  lastErr = { key };
+  renderError();
+  errbox.classList.remove("hidden");
+}
+function clearError() {
+  lastErr = null;
+  errbox.classList.add("hidden");
 }
 
 function buildParams() {
@@ -534,7 +874,7 @@ function buildParams() {
       seedOk = b >= -(2n ** 63n) && b <= 2n ** 63n - 1n;
     }
     if (!seedOk) {
-      return { error: "Seed must be a whole number that fits in a signed 64-bit integer, e.g. 42 or 3000000000." };
+      return { errorKey: "err_seed" }; // translated at display time via t()
     }
     p.seed = seedStr;
   } else {
@@ -547,21 +887,21 @@ function startTimer() {
   startTime = Date.now();
   clearInterval(timer);
   timer = setInterval(() => {
-    statusText.textContent = "Reducing… " + ((Date.now() - startTime) / 1000).toFixed(0) + " s elapsed";
+    setStatus("status_running", ((Date.now() - startTime) / 1000).toFixed(0));
   }, 500);
 }
 
 runBtn.onclick = () => {
   const params = buildParams();
-  if (params.error) {
-    errbox.textContent = params.error;
-    errbox.classList.remove("hidden");
+  if (params.errorKey) {
+    showErrKey(params.errorKey);
     return;
   }
-  errbox.classList.add("hidden");
+  clearError();
   $("resultCard").classList.add("hidden");
   $("previewCard").classList.add("hidden");
-  setBusy(true, "Starting engine…");
+  setBusy(true);
+  setStatus("status_starting");
   startTimer();
 
   runWorker = makeWorker(); // fresh worker per run: clean memory every time
@@ -569,22 +909,23 @@ runBtn.onclick = () => {
     const msg = e.data;
     if (msg.type === "done") {
       clearInterval(timer);
-      setBusy(false, "Done in " + msg.result.elapsed_s.toFixed(1) + " s.");
+      setBusy(false);
+      setStatus("status_done", fmtDec(msg.result.elapsed_s, 1));
       runWorker.terminate(); runWorker = null;
       showResult(params, msg.result);
     } else if (msg.type === "error") {
       clearInterval(timer);
-      setBusy(false, "Failed.");
+      setBusy(false);
+      setStatus("status_failed");
       runWorker.terminate(); runWorker = null;
-      errbox.textContent = friendlyError(msg.message);
-      errbox.classList.remove("hidden");
+      showError(msg.message);
     }
   };
   runWorker.onerror = (e) => {
     clearInterval(timer);
-    setBusy(false, "Failed.");
-    errbox.textContent = friendlyError(e.message || "The worker crashed unexpectedly.");
-    errbox.classList.remove("hidden");
+    setBusy(false);
+    setStatus("status_failed");
+    if (e.message) showError(e.message); else showErrKey("err_worker");
   };
   runWorker.postMessage({ type: "run", params });
 };
@@ -592,7 +933,8 @@ runBtn.onclick = () => {
 cancelBtn.onclick = () => {
   if (runWorker) { runWorker.terminate(); runWorker = null; }
   clearInterval(timer);
-  setBusy(false, "Cancelled.");
+  setBusy(false);
+  setStatus("status_cancelled");
 };
 
 // ---------------------------------------------------------------------------
@@ -600,29 +942,27 @@ cancelBtn.onclick = () => {
 // ---------------------------------------------------------------------------
 let lastResult = null, lastParams = null;
 
-function fmtInt(n) { return n.toLocaleString("en-US"); }
-
 function showResult(params, r) {
   lastResult = r; lastParams = params;
   $("stRows").innerHTML = fmtInt(r.rows_written) + "<small> / " + fmtInt(r.size) + "</small>";
-  $("stCov").textContent = r.covered_pct.toFixed(1) + "%";
+  $("stCov").textContent = fmtDec(r.covered_pct, 1) + "%";
   $("stCost").textContent = fmtInt(Math.round(r.cost));
 
   const wb = $("warnbox");
   if (r.warnings && r.warnings.length) {
-    wb.innerHTML = r.warnings.map(escapeHtml).join("<br>");
+    wb.innerHTML = r.warnings.map((w) => escapeHtml(translateError(w))).join("<br>");
     wb.classList.remove("hidden");
   } else wb.classList.add("hidden");
 
   const lines = [];
-  lines.push(sumRow("System", r.entries.join(",")));
-  lines.push(sumRow("Full system", fmtInt(r.size) + " rows"));
-  lines.push(sumRow("Guarantee", r.guarantee + " correct" + (r.partial ? " — partial cover" : "")));
-  lines.push(sumRow("Rows needed", r.needed + (r.lower_bound != null ? " (lower bound " + r.lower_bound + ")" : "")));
-  lines.push(sumRow("Coverage", r.covered + "/" + fmtInt(r.size) + " outcomes (" + r.covered_pct.toFixed(2) + " %)"));
-  lines.push(sumRow("Cost", r.cost.toFixed(2).replace(/\.00$/, "") + " SEK"));
-  lines.push(sumRow("Time", r.elapsed_s.toFixed(2) + " s"));
-  lines.push(sumRow("Seed", String(r.seed)));
+  lines.push(sumRow(t("k_system"), r.entries.join(",")));
+  lines.push(sumRow(t("k_full"), t("sum_full", r.size)));
+  lines.push(sumRow(t("k_guarantee"), t("sum_guarantee", r.guarantee) + (r.partial ? t("sum_partial") : "")));
+  lines.push(sumRow(t("k_needed"), r.needed + (r.lower_bound != null ? t("sum_lower", r.lower_bound) : "")));
+  lines.push(sumRow(t("k_coverage"), t("sum_coverage", r.covered, r.size, fmtDec(r.covered_pct, 2))));
+  lines.push(sumRow(t("k_cost"), t("sum_cost", fmtCost(r.cost))));
+  lines.push(sumRow(t("k_time"), t("sum_time", fmtDec(r.elapsed_s, 2))));
+  lines.push(sumRow(t("k_seed"), String(r.seed)));
   $("summary").innerHTML = lines.join("");
 
   // Hit distribution chart
@@ -631,17 +971,17 @@ function showResult(params, r) {
   if (r.hit_dist && Object.keys(r.hit_dist).length) {
     const entries = Object.entries(r.hit_dist).map(([k, v]) => [+k, v]).sort((a, b) => b[0] - a[0]);
     const max = Math.max(...entries.map(([, v]) => v));
-    let html = "<h2 style='margin-top:18px'>Best result distribution</h2>";
+    let html = "<h2 style='margin-top:18px'>" + escapeHtml(t("chart_title")) + "</h2>";
     for (const [correct, count] of entries) {
       const pct = (100 * count / r.size);
-      html += '<div class="bar-row"><div class="bar-label">' + correct + " correct</div>" +
+      html += '<div class="bar-row"><div class="bar-label">' + escapeHtml(t("chart_correct", correct)) + "</div>" +
         '<div class="bar-track"><div class="bar-fill" style="width:' + (100 * count / max).toFixed(1) + '%"></div></div>' +
-        '<div class="bar-label">' + fmtInt(count) + " (" + pct.toFixed(1) + "%)</div></div>";
+        '<div class="bar-label">' + fmtInt(count) + " (" + fmtDec(pct, 1) + "%)</div></div>";
     }
     chart.innerHTML = html;
     chart.classList.remove("hidden");
   } else if (r.hit_skipped) {
-    chart.innerHTML = "<div class='hint' style='margin-top:12px'>Hit distribution skipped — this run exceeds the browser's 2×10⁸-operation budget (the CLI verifies up to 3×10⁹). The rows and the downloaded file are unaffected.</div>";
+    chart.innerHTML = "<div class='hint' style='margin-top:12px'>" + t("hit_skipped") + "</div>";
     chart.classList.remove("hidden");
   } else {
     chart.classList.add("hidden");
@@ -653,7 +993,7 @@ function showResult(params, r) {
   r.lines.forEach((l, i) => { text += (i + 1) + ".  " + l + "\n"; });
   preview.textContent = text.trimEnd();
   $("previewNote").textContent = r.lines_shown < r.rows_written
-    ? "Showing " + r.lines_shown + " of " + fmtInt(r.rows_written) + " rows. Download the file to see all of them."
+    ? t("preview_note", r.lines_shown, r.rows_written)
     : "";
   $("resultCard").classList.remove("hidden");
   $("previewCard").classList.remove("hidden");
@@ -689,11 +1029,20 @@ $("copyBtn").onclick = async () => {
   if (!lastResult) return;
   try {
     await navigator.clipboard.writeText(lastResult.text);
-    statusText.textContent = "File copied (" + fmtInt(lastResult.rows_written) + " rows).";
+    setStatus("copy_ok", fmtInt(lastResult.rows_written));
   } catch (e) {
-    statusText.textContent = "Copy failed — use the download button instead.";
+    setStatus("copy_fail");
   }
 };
+
+// ---------------------------------------------------------------------------
+// Initial language render. Runs last so every DOM reference and state
+// variable that applyLang() re-renders already exists.
+// ---------------------------------------------------------------------------
+applyLang((() => {
+  try { const s = localStorage.getItem("reduce-lang"); if (s === "sv" || s === "en") return s; } catch (e) {}
+  return "sv";
+})());
 </script>
 </body>
 </html>
