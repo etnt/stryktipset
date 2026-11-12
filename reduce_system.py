@@ -462,7 +462,13 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     rng = np.random.default_rng(args.seed)
-    fs = FullSystem.build(entries)
+    # The search is sensitive to the order of the matches: the same system in
+    # coupon order can need 10-20 % more rows than with the full covers first.
+    # So reduce in a canonical order (most options first, coupon order within
+    # a group) and map the rows back to the coupon order when writing.
+    # perm[i] = coupon match shown at canonical position i.
+    perm = sorted(range(NUM_MATCHES), key=lambda i: -len(entries[i]))
+    fs = FullSystem.build([entries[m] for m in perm])
     radius = NUM_MATCHES - args.guarantee
     if args.rows is not None and args.rows > fs.size:
         print(f"error: --rows {args.rows} is more than the {fs.size} rows "
@@ -551,7 +557,14 @@ def main(argv: list[str] | None = None) -> int:
 
     elapsed = time.perf_counter() - t0
     chosen = sorted(set(int(c) for c in chosen))
-    rows = [fs.row_signs(c) for c in chosen]
+    rows = []
+    for c in chosen:
+        canon = fs.row_signs(c)
+        row = [""] * NUM_MATCHES
+        for i, m in enumerate(perm):
+            row[m] = canon[i]
+        rows.append(row)
+    rows.sort(key=lambda r: [entries[m].index(r[m]) for m in range(NUM_MATCHES)])
     cost = len(rows) * args.row_price
     if radius == 0 or fs.size == 1:
         covered = len(chosen)

@@ -43,6 +43,7 @@ impl Algorithm {
 
 /// One reduction run. Mirrors the CLI options; see the `--help` text in
 /// `cli.rs` for the meaning of each field.
+#[derive(Clone)]
 pub struct Params {
     pub system: String,
     pub guarantee: i64,
@@ -135,7 +136,47 @@ fn restart_seed(base: u64, r: usize) -> u64 {
 
 /// Run one reduction. Returns `Err` with the same message text the CLI
 /// would print after `error: `.
+///
+/// The search is sensitive to the order of the matches: the same system with
+/// its matches in coupon order can need 10-20% more rows than with the
+/// full-covers first. So the matches are reduced in a canonical order (most
+/// options first, coupon order within a group) and the rows are mapped back.
+/// Any ordering of the same shape therefore gives the same row count.
 pub fn reduce(p: &Params, log: &Logger) -> Result<Outcome, String> {
+    let entries = parse_system(&p.system)?;
+    // perm[i] = original match shown at canonical position i.
+    let mut perm: Vec<usize> = (0..entries.len()).collect();
+    perm.sort_by_key(|&i| std::cmp::Reverse(entries[i].chars().count()));
+    if perm.iter().enumerate().all(|(i, &m)| i == m) {
+        return reduce_ordered(p, log);
+    }
+    let sorted: Vec<String> = perm.iter().map(|&m| entries[m].clone()).collect();
+    let mut q = p.clone();
+    q.system = sorted.join(",");
+    let mut out = reduce_ordered(&q, log)?;
+
+    let orig = FullSystem::build(entries.clone());
+    let mut chosen: Vec<u32> = out
+        .chosen
+        .iter()
+        .map(|&c| {
+            let idx: i64 = perm
+                .iter()
+                .enumerate()
+                .map(|(i, &m)| out.fs.digit(c as usize, i) as i64 * orig.weights[m])
+                .sum();
+            idx as u32
+        })
+        .collect();
+    chosen.sort_unstable();
+    chosen.dedup();
+    out.chosen = chosen;
+    out.fs = orig;
+    out.entries = entries;
+    Ok(out)
+}
+
+fn reduce_ordered(p: &Params, log: &Logger) -> Result<Outcome, String> {
     let entries = parse_system(&p.system)?;
     if !(1..=NUM_MATCHES as i64).contains(&p.guarantee) {
         return Err(format!("--guarantee must be 1..{NUM_MATCHES}"));
