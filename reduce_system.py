@@ -507,8 +507,12 @@ def main(argv: list[str] | None = None) -> int:
                 best = cand
         assert best is not None
 
-        partial = limit is not None and len(best) > limit
-        if args.algorithm == "anneal" and not partial:
+        # Greedy may need more rows than the limit while annealing still
+        # finds a full cover within it, so shrink first and decide on a
+        # partial cover afterwards. Skip only when the limit is below the
+        # sphere-covering bound: no full cover can exist then.
+        if args.algorithm == "anneal" and (limit is None
+                                           or limit >= lower_bound):
             # Remove one row at a time and repair the cover with annealing.
             target_min = math.ceil(fs.size / b)
             current = best
@@ -530,6 +534,7 @@ def main(argv: list[str] | None = None) -> int:
                 log(f"  anneal: full cover with {len(current)} rows")
             best = current
 
+        partial = limit is not None and len(best) > limit
         chosen = best
         needed = len(best)
         if partial:

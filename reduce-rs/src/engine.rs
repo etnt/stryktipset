@@ -274,8 +274,11 @@ fn reduce_ordered(p: &Params, log: &Logger) -> Result<Outcome, String> {
             }
         }
 
-        let partial = limit.is_some_and(|l| best.len() > l);
-        if p.algorithm == Algorithm::Anneal && !partial {
+        // Greedy may need more rows than the limit while annealing still
+        // finds a full cover within it, so shrink first and decide on a
+        // partial cover afterwards. Skip only when the limit is below the
+        // sphere-covering bound: no full cover can exist then.
+        if p.algorithm == Algorithm::Anneal && limit.is_none_or(|l| l as i64 >= lb) {
             // Remove one row at a time and repair the cover with annealing.
             let target_min = ((fs.size as i64) + b - 1) / b;
             let mut current = best.clone();
@@ -328,6 +331,7 @@ fn reduce_ordered(p: &Params, log: &Logger) -> Result<Outcome, String> {
             best = current;
         }
 
+        let partial = limit.is_some_and(|l| best.len() > l);
         let mut chosen = best.clone();
         needed = best.len();
         if partial {
